@@ -7,41 +7,50 @@
     <title>University Data</title>
 </head>
 <body class="bg-gray-100">
-    <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-4">University Course Data</h1>
-        <table class="min-w-full bg-white border border-gray-300">
-            <thead>
-                <tr>
-                    <th class="border p-2">University</th>
-                    <th class="border p-2">Course</th>
-                    <th class="border p-2">GMAT Average</th>
-                    <th class="border p-2">GMAT Count</th>
-                    <th class="border p-2">GRE Average</th>
-                    <th class="border p-2">GRE Count</th>
-                    <th class="border p-2">Experience Average</th>
-                    <th class="border p-2">Experience Count</th>
-                    <th class="border p-2">GPA Average</th>
-                    <th class="border p-2">GPA Count</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for record in records %}
-                <tr>
-                    <td class="border p-2">{{ record.university }}</td>
-                    <td class="border p-2">{{ record.course }}</td>
-                    <td class="border p-2">{{ record.gmat_average }}</td>
-                    <td class="border p-2">{{ record.gmat_count }}</td>
-                    <td class="border p-2">{{ record.gre_average }}</td>
-                    <td class="border p-2">{{ record.gre_count }}</td>
-                    <td class="border p-2">{{ record.experience_average }}</td>
-                    <td class="border p-2">{{ record.experience_count }}</td>
-                    <td class="border p-2">{{ record.gpa_average }}</td>
-                    <td class="border p-2">{{ record.gpa_count }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <a href="/update" class="mt-4 inline-block bg-blue-500 text-white p-2">Update Data</a>
+
+    <!-- Navbar -->
+    <nav class="bg-gray-600 p-4 shadow">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-white text-xl font-bold">getadmit.fyi</a>
+            <a href="/update" class="bg-red-500 text-white px-4 hover:underline">Update Data</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-8">
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white rounded-lg shadow-lg">
+                <thead>
+                    <tr class="bg-gray-200 text-gray-600">
+                        <th class="py-3 px-4 border-b">University</th>
+                        <th class="py-3 px-4 border-b">Course</th>
+                        <th class="py-3 px-4 border-b">GMAT Average</th>
+                        <th class="py-3 px-4 border-b">GMAT Count</th>
+                        <th class="py-3 px-4 border-b">GRE Average</th>
+                        <th class="py-3 px-4 border-b">GRE Count</th>
+                        <th class="py-3 px-4 border-b">Experience Average</th>
+                        <th class="py-3 px-4 border-b">Experience Count</th>
+                        <th class="py-3 px-4 border-b">GPA Average</th>
+                        <th class="py-3 px-4 border-b">GPA Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr class="hover:bg-gray-100 transition duration-200">
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.university }}</td>
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.course }}</td>
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gmat_average }}</td>
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gmat_count }}</td>
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gre_average }}</td>
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gre_count }}</td>
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.experience_average }}</td>
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.experience_count }}</td>
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gpa_average }}</td>
+                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gpa_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>

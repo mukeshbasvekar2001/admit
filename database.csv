@@ -1,6 +1,6 @@
 university,course,gmat_average,gmat_count,gre_average,gre_count,experience_average,experience_count,gpa_average,gpa_count
 University A,Course 2,0,0,0,0,5,2,3.55,2
 University B,Course 2,0,0,0,0,0,0,0.0,0
-University B,Course 5,0,0,0,0,0,0,0.0,0
+University B,Course 5,750,1,320,1,4,1,4.0,1
 University E,Course 4,0,0,0,0,0,0,0.0,0
 University E,Course 5,0,0,0,0,0,0,0.0,0
