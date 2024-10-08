@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <title>Update University Data</title>
+    <script>
+        async function fetchCourses(university) {
+            const response = await fetch(`/get_courses/${university}`);
+            const courses = await response.json();
+            const courseSelect = document.getElementById('course');
+            
+            // Clear existing options
+            courseSelect.innerHTML = '<option value="">Select Course</option>';
+            
+            // Populate with new options
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course;
+                option.textContent = course;
+                courseSelect.appendChild(option);
+            });
+        }
+    </script>
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
@@ -12,7 +30,7 @@
         <form action="/update" method="post" class="space-y-4">
             <div>
                 <label for="university" class="block">University:</label>
-                <select name="university" id="university" required class="border p-2">
+                <select name="university" id="university" required class="border p-2" onchange="fetchCourses(this.value)">
                     <option value="">Select University</option>
                     {% for university in universities %}
                     <option value="{{ university }}">{{ university }}</option>
@@ -23,18 +41,22 @@
                 <label for="course" class="block">Course:</label>
                 <select name="course" id="course" required class="border p-2">
                     <option value="">Select Course</option>
-                    {% for course in courses %}
-                    <option value="{{ course }}">{{ course }}</option>
-                    {% endfor %}
                 </select>
             </div>
             <div>
-                <label for="gmat" class="block">GMAT Score:</label>
-                <input type="number" name="gmat" id="gmat" required class="border p-2" step="0.01">
+                <label for="selection_status" class="block">Selection Status:</label>
+                <select name="selection_status" id="selection_status" required class="border p-2">
+                    <option value="Selected">Selected</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
             </div>
             <div>
-                <label for="gre" class="block">GRE Score:</label>
-                <input type="number" name="gre" id="gre" required class="border p-2" step="0.01">
+                <label for="gmat" class="block">GMAT Score (Optional):</label>
+                <input type="number" name="gmat" id="gmat" class="border p-2" step="1" min="0" placeholder="Enter GMAT Score (if applicable)">
+            </div>
+            <div>
+                <label for="gre" class="block">GRE Score (Optional):</label>
+                <input type="number" name="gre" id="gre" class="border p-2" step="1" min="0" placeholder="Enter GRE Score (if applicable)">
             </div>
             <div>
                 <label for="experience" class="block">Experience (Years):</label>
