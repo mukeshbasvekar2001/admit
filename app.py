@@ -6,11 +6,38 @@ app = Flask(__name__)
 # Path to your CSV file
 CSV_FILE = 'database.csv'
 
+def load_data():
+    """Load the CSV file data."""
+    try:
+        return pd.read_csv(CSV_FILE)
+    except Exception as e:
+        print(f"Error loading CSV file: {e}")
+        return pd.DataFrame()
+
 @app.route('/')
 def index():
-    data = pd.read_csv(CSV_FILE)
-    records = data.to_dict(orient='records')
-    return render_template('index.html', records=records)
+    """Displays the courses and the related data."""
+    data = load_data()
+    courses = data['course'].unique()  # Get unique courses for selection
+    default_course = courses[0]  # Select the first course as default (you can customize this)
+
+    # Filter the data for the default course
+    filtered_data = data[data['course'] == default_course].to_dict(orient='records')
+
+    return render_template('index.html', courses=courses, default_course=default_course, records=filtered_data)
+
+@app.route('/get_universities/<course>', methods=['GET'])
+def get_universities(course):
+    """Return university data for a selected course."""
+    data = load_data()
+    filtered_data = data[data['course'] == course]  # Filter data based on selected course
+
+    if filtered_data.empty:
+        return jsonify({"error": "No data found for the selected course"}), 404
+
+    records = filtered_data.to_dict(orient='records')
+    return jsonify(records)
+
 
 @app.route('/get_courses/<university>', methods=['GET'])
 def get_courses(university):
