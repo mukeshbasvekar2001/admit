@@ -55,7 +55,8 @@ def update():
         gre_score = request.form.get('gre', type=float)
         experience_years = request.form['experience']
         gpa = request.form['gpa']
-        selection_status = request.form['selection_status']
+        toefl_score = request.form.get('toefl', type=float)
+        ielts_score = request.form.get('ielts', type=float)
 
         # Load the CSV data
         data = pd.read_csv(CSV_FILE)
@@ -92,10 +93,28 @@ def update():
             gpa_count += 1
             gpa_avg = (gpa_avg * (gpa_count - 1) + float(gpa)) / gpa_count
 
+            # TOEFL Updates
+            toefl_avg = data.loc[row_index, 'toefl_average'] if pd.notnull(data.loc[row_index, 'toefl_average']) else 0
+            toefl_count = data.loc[row_index, 'toefl_count'] if pd.notnull(data.loc[row_index, 'toefl_count']) else 0
+            if toefl_score is not None:
+                toefl_count += 1
+                toefl_avg = (toefl_avg * (toefl_count - 1) + toefl_score) / toefl_count
+
+            # IELTS Updates
+            ielts_avg = data.loc[row_index, 'ielts_average'] if pd.notnull(data.loc[row_index, 'ielts_average']) else 0
+            ielts_count = data.loc[row_index, 'ielts_count'] if pd.notnull(data.loc[row_index, 'ielts_count']) else 0
+            if ielts_score is not None:
+                ielts_count += 1
+                ielts_avg = (ielts_avg * (ielts_count - 1) + ielts_score) / ielts_count
+
             # Update the values in the DataFrame
-            data.loc[row_index, ['gmat_average', 'gmat_count', 'gre_average', 'gre_count',
-                                 'experience_average', 'experience_count', 'gpa_average', 'gpa_count']] = [
-                gmat_avg, gmat_count, gre_avg, gre_count, exp_avg, exp_count, gpa_avg, gpa_count
+            data.loc[row_index, [
+                'gmat_average', 'gmat_count', 'gre_average', 'gre_count',
+                'experience_average', 'experience_count', 'gpa_average', 'gpa_count',
+                'toefl_average', 'toefl_count', 'ielts_average', 'ielts_count'
+            ]] = [
+                gmat_avg, gmat_count, gre_avg, gre_count, exp_avg, exp_count,
+                gpa_avg, gpa_count, toefl_avg, toefl_count, ielts_avg, ielts_count
             ]
 
             # Save the updated DataFrame back to the CSV

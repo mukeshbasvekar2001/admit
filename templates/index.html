@@ -52,7 +52,7 @@
 
         /* Custom widths */
         .table-custom-width {
-            max-width: 800px; /* Set a maximum width for the table */
+            max-width: 1000px; /* Set a maximum width for the table */
         }
     </style>
     <script>
@@ -66,7 +66,7 @@
                         tabs.forEach(t => t.classList.remove('tab-active'));
                         this.classList.add('tab-active');
 
-                        // Fetch and update table
+                        // Fetch and update table based on the selected course
                         fetch(`/get_universities/${selectedCourse}`)
                             .then(response => response.json())
                             .then(data => {
@@ -93,6 +93,8 @@
                             <td class="py-3 px-4 text-gray-800">${record.gre_average || 'N/A'}</td>
                             <td class="py-3 px-4 text-gray-800">${record.experience_average || 'N/A'}</td>
                             <td class="py-3 px-4 text-gray-800">${record.gpa_average || 'N/A'}</td>
+                            <td class="py-3 px-4 text-gray-800">${record.toefl_average || 'N/A'}</td> <!-- Added TOEFL -->
+                            <td class="py-3 px-4 text-gray-800">${record.ielts_average || 'N/A'}</td> <!-- Added IELTS -->
                         </tr>
                     `;
                     tbody.insertAdjacentHTML('beforeend', row);
@@ -112,7 +114,7 @@
     </nav>
 
     <!-- Main Content -->
-    <div class="container mx-auto max-w-7xl p-8"> <!-- Set maximum width -->
+    <div class="container mx-auto max-w-7xl p-8">
         <!-- Course Tabs -->
         <div class="mb-6 flex space-x-6 border-b">
             {% for course in courses %}
@@ -129,15 +131,17 @@
 
         <!-- Data Table -->
         <div class="bg-white rounded-lg shadow-lg overflow-x-auto">
-            <table class="min-w-full table-auto table-custom-width"> <!-- Use custom class -->
+            <table class="min-w-full table-auto table-custom-width">
                 <thead class="table-header text-sm text-gray-600">
                     <tr>
-                        <th class="py-3 px-4 text-left w-1/4">University</th>
-                        <th class="py-3 px-4 text-left w-1/4">Course</th>
+                        <th class="py-3 px-4 text-left w-1/5">University</th>
+                        <th class="py-3 px-4 text-left w-1/5">Course</th>
                         <th class="py-3 px-4 text-left w-1/6">GMAT</th>
                         <th class="py-3 px-4 text-left w-1/6">GRE</th>
                         <th class="py-3 px-4 text-left w-1/6">Experience</th>
                         <th class="py-3 px-4 text-left w-1/6">GPA</th>
+                        <th class="py-3 px-4 text-left w-1/6">TOEFL</th> <!-- Added TOEFL Column -->
+                        <th class="py-3 px-4 text-left w-1/6">IELTS</th> <!-- Added IELTS Column -->
                     </tr>
                 </thead>
                 <tbody id="dataBody">
@@ -145,10 +149,12 @@
                     <tr class="table-row hover:bg-gray-100">
                         <td class="py-3 px-4">{{ record.university }}</td>
                         <td class="py-3 px-4">{{ record.course }}</td>
-                        <td class="py-3 px-4">{{ record.gmat_average }}</td>
-                        <td class="py-3 px-4">{{ record.gre_average }}</td>
-                        <td class="py-3 px-4">{{ record.experience_average }}</td>
-                        <td class="py-3 px-4">{{ record.gpa_average }}</td>
+                        <td class="py-3 px-4">{{ record.gmat_average or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ record.gre_average or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ record.experience_average or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ record.gpa_average or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ record.toefl_average or 'N/A' }}</td> <!-- Display TOEFL Average -->
+                        <td class="py-3 px-4">{{ record.ielts_average or 'N/A' }}</td> <!-- Display IELTS Average -->
                     </tr>
                     {% endfor %}
                 </tbody>
