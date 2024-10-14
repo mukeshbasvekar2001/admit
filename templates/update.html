@@ -27,50 +27,58 @@
         }
     </script>
 </head>
-<body class="bg-gradient-to-r from-blue-200 to-blue-500 min-h-screen flex items-center justify-center">
-    <div class="container mx-auto p-8 bg-white rounded-lg shadow-lg" style="max-width: 600px;">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Update University Data</h1>
+<body class="bg-gradient-to-r from-gray-100 to-gray-300 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto p-8 bg-white rounded-xl shadow-lg" style="max-width: 800px;">
+        <h1 class="text-2xl font-bold text-center text-gray-900 mb-6">Update University Data</h1>
         
-        <form method="post">
-            <div class="mb-4">
-                <label for="university" class="block text-gray-700 font-semibold">University:</label>
-                <select name="university" id="university" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-blue-300" onchange="fetchCourses(this.value)">
-                    <option value="">Select University</option>
-                    {% for university in universities %}
-                    <option value="{{ university }}">{{ university }}</option>
-                    {% endfor %}
-                </select>
+        <form method="post" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="university" class="block text-gray-700 font-semibold">University:</label>
+                    <select name="university" id="university" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-gray-400" onchange="fetchCourses(this.value)">
+                        <option value="">Select University</option>
+                        {% for university in universities %}
+                        <option value="{{ university }}">{{ university }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="course" class="block text-gray-700 font-semibold">Course:</label>
+                    <select name="course" id="course" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-gray-400">
+                        <option value="">Select Course</option>
+                    </select>
+                </div>
             </div>
-            <div class="mb-4">
-                <label for="course" class="block text-gray-700 font-semibold">Course:</label>
-                <select name="course" id="course" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-blue-300">
-                    <option value="">Select Course</option>
-                </select>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="gmat" class="block text-gray-700 font-semibold">GMAT Score (optional):</label>
+                    <input type="number" name="gmat" id="gmat" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-gray-400" min="0" placeholder="Enter GMAT Score">
+                </div>
+                <div>
+                    <label for="gre" class="block text-gray-700 font-semibold">GRE Score (optional):</label>
+                    <input type="number" name="gre" id="gre" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-gray-400" min="0" placeholder="Enter GRE Score">
+                </div>
             </div>
-            <div class="mb-4">
-                <label for="gmat" class="block text-gray-700 font-semibold">GMAT Score (optional):</label>
-                <input type="number" name="gmat" id="gmat" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-blue-300" min="0" placeholder="Enter GMAT Score">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="experience" class="block text-gray-700 font-semibold">Experience (years):</label>
+                    <input type="number" step="0.1" name="experience" id="experience" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-gray-400" required placeholder="Enter Experience">
+                </div>
+                <div>
+                    <label for="gpa" class="block text-gray-700 font-semibold">GPA:</label>
+                    <input type="number" step="0.01" name="gpa" id="gpa" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-gray-400" required placeholder="Enter GPA">
+                </div>
             </div>
-            <div class="mb-4">
-                <label for="gre" class="block text-gray-700 font-semibold">GRE Score (optional):</label>
-                <input type="number" name="gre" id="gre" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-blue-300" min="0" placeholder="Enter GRE Score">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="selection_status" class="block text-gray-700 font-semibold">Selection Status:</label>
+                    <select name="selection_status" id="selection_status" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-gray-400">
+                        <option value="Selected">Selected</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
             </div>
-            <div class="mb-4">
-                <label for="experience" class="block text-gray-700 font-semibold">Experience (years):</label>
-                <input type="number" step="0.1" name="experience" id="experience" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-blue-300" required placeholder="Enter Experience">
-            </div>
-            <div class="mb-4">
-                <label for="gpa" class="block text-gray-700 font-semibold">GPA:</label>
-                <input type="number" step="0.01" name="gpa" id="gpa" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-blue-300" required placeholder="Enter GPA">
-            </div>
-            <div class="mb-4">
-                <label for="selection_status" class="block text-gray-700 font-semibold">Selection Status:</label>
-                <select name="selection_status" id="selection_status" class="border border-gray-300 p-3 w-full rounded-lg focus:outline-none focus:ring focus:ring-blue-300">
-                    <option value="Selected">Selected</option>
-                    <option value="Rejected">Rejected</option>
-                </select>
-            </div>
-            <button type="submit" class="bg-blue-600 text-white font-bold py-3 rounded-lg w-full hover:bg-blue-500 transition duration-300">Update Data</button>
+            <button type="submit" class="bg-gray-900 text-white font-semibold py-3 rounded-lg w-full hover:bg-gray-700 transition duration-300">Update Data</button>
         </form>
     </div>
 </body>

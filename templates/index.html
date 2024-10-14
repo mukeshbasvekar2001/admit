@@ -5,22 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <title>University Data</title>
+    <style>
+        /* Minimalist tab design */
+        .tab {
+            font-weight: 500;
+            color: #555;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: black;
+        }
+
+        .tab-active {
+            color: black;
+            border-color: #000;
+        }
+
+        .btn-primary {
+            background-color: black;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #333;
+        }
+
+        /* Table Design */
+        .table-header {
+            background-color: #f7f7f7;
+        }
+
+        .table-row {
+            transition: background-color 0.3s ease;
+        }
+
+        .table-row:hover {
+            background-color: #fafafa;
+        }
+
+        /* Custom widths */
+        .table-custom-width {
+            max-width: 800px; /* Set a maximum width for the table */
+        }
+    </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('courseSelect').addEventListener('change', function() {
-                const selectedCourse = this.value;
-                if (selectedCourse) {
-                    fetch(`/get_universities/${selectedCourse}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.error) {
-                                alert(data.error);
-                            } else {
-                                updateTable(data);
-                            }
-                        })
-                        .catch(error => console.error('Error:', error));
-                }
+            const tabs = document.querySelectorAll('.tab');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const selectedCourse = this.dataset.course;
+                    if (selectedCourse) {
+                        tabs.forEach(t => t.classList.remove('tab-active'));
+                        this.classList.add('tab-active');
+
+                        // Fetch and update table
+                        fetch(`/get_universities/${selectedCourse}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    alert(data.error);
+                                } else {
+                                    updateTable(data);
+                                }
+                            })
+                            .catch(error => console.error('Error:', error));
+                    }
+                });
             });
 
             function updateTable(records) {
@@ -28,17 +86,13 @@
                 tbody.innerHTML = ''; 
                 records.forEach(record => {
                     const row = `
-                        <tr class="hover:bg-gray-100 transition duration-200">
-                            <td class="py-3 px-4 border-b text-gray-800">${record.university}</td>
-                            <td class="py-3 px-4 border-b text-gray-800">${record.course}</td>
-                            <td class="py-3 px-4 border-b text-gray-800">${record.gmat_average || 'N/A'}</td>
-                            <td class="py-3 px-4 border-b text-gray-800">${record.gmat_count || 'N/A'}</td>
-                            <td class="py-3 px-4 border-b text-gray-800">${record.gre_average || 'N/A'}</td>
-                            <td class="py-3 px-4 border-b text-gray-800">${record.gre_count || 'N/A'}</td>
-                            <td class="py-3 px-4 border-b text-gray-800">${record.experience_average || 'N/A'}</td>
-                            <td class="py-3 px-4 border-b text-gray-800">${record.experience_count || 'N/A'}</td>
-                            <td class="py-3 px-4 border-b text-gray-800">${record.gpa_average || 'N/A'}</td>
-                            <td class="py-3 px-4 border-b text-gray-800">${record.gpa_count || 'N/A'}</td>
+                        <tr class="table-row">
+                            <td class="py-3 px-4 text-gray-800">${record.university}</td>
+                            <td class="py-3 px-4 text-gray-800">${record.course}</td>
+                            <td class="py-3 px-4 text-gray-800">${record.gmat_average || 'N/A'}</td>
+                            <td class="py-3 px-4 text-gray-800">${record.gre_average || 'N/A'}</td>
+                            <td class="py-3 px-4 text-gray-800">${record.experience_average || 'N/A'}</td>
+                            <td class="py-3 px-4 text-gray-800">${record.gpa_average || 'N/A'}</td>
                         </tr>
                     `;
                     tbody.insertAdjacentHTML('beforeend', row);
@@ -47,64 +101,59 @@
         });
     </script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-white font-sans leading-relaxed text-gray-800">
 
     <!-- Navbar -->
-    <nav class="bg-gray-800 p-4 shadow-lg">
+    <nav class="bg-white shadow-sm px-16 py-4">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="text-white text-2xl font-bold">getadmit.fyi</a>
-            <a href="/update" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">Update Data</a>
+            <a href="/" class="text-2xl font-semibold text-gray-900">getadmit.fyi</a>
+            <a href="/update" class="btn-primary">Submit Data</a>
         </div>
     </nav>
 
-    <!-- Main Container -->
-    <div class="container mx-auto p-8">
-        <!-- Course Selection Dropdown -->
-        <div class="mb-6">
-            <label for="courseSelect" class="block text-lg font-semibold text-gray-700">Select a Course:</label>
-            <select id="courseSelect" class="block w-full mt-2 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                {% for course in courses %}
-                <option value="{{ course }}" {% if course == default_course %} selected {% endif %}>{{ course }}</option>
-                {% endfor %}
-            </select>
+    <!-- Main Content -->
+    <div class="container mx-auto max-w-7xl p-8"> <!-- Set maximum width -->
+        <!-- Course Tabs -->
+        <div class="mb-6 flex space-x-6 border-b">
+            {% for course in courses %}
+            <div data-course="{{ course }}" class="tab {{ 'tab-active' if course == default_course }}">
+                {{ course }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Note about Master's Programs -->
+        <div class="mb-4 text-gray-600">
+            <p class="px-2 text-sm"><strong>*Note</strong>: The data displayed here is specific to <strong>master's programs</strong> only.</p>
         </div>
 
         <!-- Data Table -->
-        <div class="overflow-x-auto bg-white p-6 rounded-lg shadow-md">
-            <table class="min-w-full bg-white rounded-lg">
-                <thead class="bg-gray-200">
+        <div class="bg-white rounded-lg shadow-lg overflow-x-auto">
+            <table class="min-w-full table-auto table-custom-width"> <!-- Use custom class -->
+                <thead class="table-header text-sm text-gray-600">
                     <tr>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">University</th>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">Course</th>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">GMAT Average</th>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">GMAT Count</th>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">GRE Average</th>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">GRE Count</th>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">Experience Avg</th>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">Experience Count</th>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">GPA Average</th>
-                        <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">GPA Count</th>
+                        <th class="py-3 px-4 text-left w-1/4">University</th>
+                        <th class="py-3 px-4 text-left w-1/4">Course</th>
+                        <th class="py-3 px-4 text-left w-1/6">GMAT</th>
+                        <th class="py-3 px-4 text-left w-1/6">GRE</th>
+                        <th class="py-3 px-4 text-left w-1/6">Experience</th>
+                        <th class="py-3 px-4 text-left w-1/6">GPA</th>
                     </tr>
                 </thead>
                 <tbody id="dataBody">
                     {% for record in records %}
-                    <tr class="hover:bg-gray-100 transition ease-in-out duration-150">
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.university }}</td>
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.course }}</td>
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gmat_average }}</td>
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gmat_count }}</td>
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gre_average }}</td>
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gre_count }}</td>
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.experience_average }}</td>
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.experience_count }}</td>
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gpa_average }}</td>
-                        <td class="py-3 px-4 border-b text-gray-800">{{ record.gpa_count }}</td>
+                    <tr class="table-row hover:bg-gray-100">
+                        <td class="py-3 px-4">{{ record.university }}</td>
+                        <td class="py-3 px-4">{{ record.course }}</td>
+                        <td class="py-3 px-4">{{ record.gmat_average }}</td>
+                        <td class="py-3 px-4">{{ record.gre_average }}</td>
+                        <td class="py-3 px-4">{{ record.experience_average }}</td>
+                        <td class="py-3 px-4">{{ record.gpa_average }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-
 </body>
 </html>
