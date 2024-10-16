@@ -29,10 +29,9 @@ def index():
 @app.route('/get_universities/<course>', methods=['GET'])
 def get_universities(course):
     """Return university data for a selected course."""
-    print(course)
     data = load_data()
-    print(data)
     filtered_data = data[data['course'] == course]  # Filter data based on selected course
+    print(f"Filtered data for course {course}: {filtered_data}")
 
     if filtered_data.empty:
         return jsonify({"error": "No data found for the selected course"}), 404
