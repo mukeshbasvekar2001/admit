@@ -57,8 +57,10 @@ def index():
 @app.route('/get_universities/<course>', methods=['GET'])
 def get_universities(course):
     """Return university data for a selected course."""
-    data = load_data()
-    filtered_data = data[data['course'] == course]  # Filter data based on selected course
+    data = load_data()  # Load the CSV data
+
+    # Filter the data based on the selected course
+    filtered_data = data[data['course'].str.strip().str.lower() == course.strip().lower()]  # Normalize course names
 
     if filtered_data.empty:
         logger.warning(f"No data found for course: {course}")
