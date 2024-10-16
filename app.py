@@ -63,6 +63,8 @@ def index():
 def get_universities(course):
     """Return university data for a selected course."""
     data = load_data()
+    logger.info(f"Data loaded: {data}")
+
     logger.info(f"Received request for course: {course}")
 
     normalized_course = course.strip().lower()
