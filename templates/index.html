@@ -4,19 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>University Data</title>
-    <!-- Tailwind CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>University Data</title>
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensures the body takes up at least full viewport height */
+}
 
+        /* Minimalist tab design */
         .tab {
             font-weight: 500;
-            color: #6B7280; /* Gray-600 */
+            color: #4A5568;
             padding: 0.75rem 1.5rem;
             cursor: pointer;
             border-bottom: 2px solid transparent;
@@ -25,32 +25,41 @@
         }
 
         .tab:hover {
-            color: #4B5563; /* Gray-700 */
+            color: #2D3748;
         }
 
         .tab-active {
-            color: #6D28D9; /* Purple-700 */
-            border-color: #6D28D9;
+            color: #2D3748;
+            border-color: #2D3748;
         }
 
         .btn-primary {
-            background-color: #6D28D9; /* Purple-700 */
+            background-color: #4A5568;
             color: white;
             padding: 0.75rem 1.5rem;
             border-radius: 9999px;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .btn-primary:hover {
-            background-color: #5B21B6; /* Purple-800 */
+            background-color: #2D3748;
         }
 
-        /* Responsive Tab Design */
+        /* Responsive Tabs */
         @media (max-width: 768px) {
             .tabs-wrapper {
-                display: none;
+                display: none; /* Hide tabs on mobile */
             }
+
+            .dropdown-wrapper {
+                display: block; /* Show dropdown on mobile */
+            }
+
+            .table-wrapper {
+                display: none; /* Hide table on mobile */
+            }
+
             .mobile-card {
                 display: block;
                 margin-bottom: 1rem;
@@ -59,8 +68,18 @@
                 border-radius: 0.5rem;
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             }
+
+            .mobile-card h3 {
+                font-weight: 600;
+                margin-bottom: 0.75rem;
+            }
+
+            .mobile-card p {
+                margin-bottom: 0.5rem;
+            }
         }
 
+        /* Desktop Table View */
         @media (min-width: 769px) {
             .mobile-card {
                 display: none;
@@ -72,6 +91,22 @@
             const tabs = document.querySelectorAll('.tab');
             const dropdown = document.getElementById('courseDropdown');
 
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    const selectedCourse = this.dataset.course;
+                    if (selectedCourse) {
+                        updateCourse(selectedCourse);
+                    }
+                });
+            });
+
+            dropdown.addEventListener('change', function () {
+                const selectedCourse = this.value;
+                if (selectedCourse) {
+                    updateCourse(selectedCourse);
+                }
+            });
+
             function updateCourse(course) {
                 tabs.forEach(t => t.classList.remove('tab-active'));
                 const activeTab = Array.from(tabs).find(t => t.dataset.course === course);
@@ -79,6 +114,7 @@
                     activeTab.classList.add('tab-active');
                 }
 
+                // Fetch and update table based on the selected course
                 fetch(`/get_universities/${course}`)
                     .then(response => response.json())
                     .then(data => {
@@ -86,30 +122,18 @@
                             alert(data.error);
                         } else {
                             updateTable(data);
-                            updateMobileCards(data);
+                            updateMobileCards(data); // Update mobile cards
                         }
                     })
                     .catch(error => console.error('Error:', error));
             }
-
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function () {
-                    const selectedCourse = this.dataset.course;
-                    updateCourse(selectedCourse);
-                });
-            });
-
-            dropdown.addEventListener('change', function () {
-                const selectedCourse = this.value;
-                updateCourse(selectedCourse);
-            });
 
             function updateTable(records) {
                 const tbody = document.getElementById('dataBody');
                 tbody.innerHTML = '';
                 records.forEach(record => {
                     const row = `
-                        <tr class="bg-white border-b">
+                        <tr class="table-row">
                             <td class="py-3 px-4 text-gray-800">${record.university}</td>
                             <td class="py-3 px-4 text-gray-800">${record.gmat_average || 'N/A'}</td>
                             <td class="py-3 px-4 text-gray-800">${record.gre_average || 'N/A'}</td>
@@ -129,7 +153,8 @@
                 records.forEach(record => {
                     const card = `
                         <div class="mobile-card">
-                            <h3 class="text-lg font-semibold">${record.university}</h3>
+                            <h3>${record.university}</h3>
+                            <p><strong>Course:</strong> ${record.course}</p>
                             <p><strong>GMAT:</strong> ${record.gmat_average || 'N/A'}</p>
                             <p><strong>GRE:</strong> ${record.gre_average || 'N/A'}</p>
                             <p><strong>Experience:</strong> ${record.experience_average || 'N/A'}</p>
@@ -142,6 +167,7 @@
                 });
             }
 
+            // Trigger the click event on the initially active tab
             const activeTab = document.querySelector('.tab-active');
             if (activeTab) {
                 activeTab.click();
@@ -150,74 +176,85 @@
     </script>
 </head>
 
-<body class="bg-gray-50 font-sans leading-relaxed text-gray-800">
+<body class="bg-gray-50 font-mono leading-relaxed text-gray-800">
 
     <!-- Navbar -->
-    <nav class="bg-white shadow-md px-6 py-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <a href="/" class="flex items-center space-x-2">
-                <img src="static/img/graduation.svg" alt="Logo" class="h-8">
-                <span class="text-xl font-bold text-gray-900">admit.fyi</span>
-            </a>
-            <a href="/update" class="btn-primary">Submit Data</a>
-        </div>
-    </nav>
+<!-- Navbar -->
+<nav class="bg-white shadow-sm px-4 sm:px-8 py-4">
+    <div class="container mx-auto flex items-center justify-between">
+        <!-- Logo and Title with Left Margin -->
+        <a href="/" class="flex items-center space-x-2 ml-4 sm:ml-8">
+            <img src="static/img/graduation.svg" alt="Logo" class="h-8 w-auto">
+            <span class="text-2xl font-semibold -mt-1 text-gray-900">admit.fyi</span>
+        </a>
+        <!-- Button with Right Margin -->
+        <a href="/update" class="btn-primary">Submit Data</a>
+    </div>
+</nav>
 
     <!-- Main Content -->
-    <div class="container mx-auto px-4 py-8">
-        <!-- Course Dropdown for Mobile -->
-        <div class="sm:hidden mb-6">
+    <div class="container mx-auto max-w-7xl p-4 sm:p-8">
+        <!-- Course Dropdown (Mobile and Tablet View) -->
+<!-- Course Dropdown (Mobile and Tablet View) -->
+        <div class="dropdown-wrapper mb-6 sm:hidden">
             <label for="courseDropdown" class="block text-sm font-medium text-gray-700">Select Course:</label>
-            <select id="courseDropdown" class="block w-full p-2.5 border border-gray-300 rounded-md">
-                <option value="">-- Select a Course --</option>
-                {% for course in courses %}
-                <option value="{{ course }}">{{ course }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <!-- Tabs for Desktop -->
-        <div class="hidden sm:block mb-6">
-            <div class="border-b">
-                <nav class="flex space-x-4">
+            <div class="relative mt-1">
+                <select id="courseDropdown" class="block w-full bg-white border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 p-2.5 pr-10 appearance-none transition duration-150 ease-in-out">
+                    <option value="">-- Select a Course --</option>
                     {% for course in courses %}
-                    <div data-course="{{ course }}" class="tab {{ 'tab-active' if course == default_course }}">
-                        {{ course }}
-                    </div>
+                    <option value="{{ course }}">{{ course }}</option>
                     {% endfor %}
-                </nav>
+                </select>
+                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10l5 5 5-5H7z" />
+                    </svg>
+                </div>
             </div>
         </div>
 
-        <!-- Notice -->
-        <div class="mb-4 p-4 bg-gray-100 rounded-lg">
-            <p class="text-gray-600 text-sm">Note: The data shown applies only to <strong>master’s programs</strong>.</p>
+        <!-- Course Tabs -->
+        <div class="tabs-wrapper mb-6 border-b hidden sm:block">
+            <div class="grid sm:flex sm:grid-cols-4 gap-4 sm:gap-0">
+                {% for course in courses %}
+                <div data-course="{{ course }}" class="tab {{ 'tab-active' if course == default_course }}">
+                    {{ course }}
+                </div>
+                {% endfor %}
+            </div>
         </div>
 
-        <!-- Table for Desktop -->
-        <div class="bg-white shadow overflow-hidden rounded-lg">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <!-- Note about Master's Programs -->
+        <div class="mb-4 px-4 py-3 text-gray-600 bg-gray-100 rounded-lg shadow-sm">
+            <p class="text-sm"><strong>Note:</strong> The data shown here applies only to <strong>master’s programs</strong>.</p>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-wrapper bg-white rounded-lg shadow-lg overflow-x-auto">
+            <table class="min-w-full table-auto">
+                <thead class="table-header text-sm bg-gray-200">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">University</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">GMAT</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">GRE</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Experience</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">GPA</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">TOEFL</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">IELTS</th>
+                        <th class="py-3 px-4 text-left w-1/5">University</th>
+                        <!-- <th class="py-3 px-4 text-left w-1/5">Course</th> -->
+                        <th class="py-3 px-4 text-left w-1/6">GMAT</th>
+                        <th class="py-3 px-4 text-left w-1/6">GRE</th>
+                        <th class="py-3 px-4 text-left w-1/6">Experience</th>
+                        <th class="py-3 px-4 text-left w-1/6">GPA</th>
+                        <th class="py-3 px-4 text-left w-1/6">TOEFL</th>
+                        <th class="py-3 px-4 text-left w-1/6">IELTS</th>
                     </tr>
                 </thead>
-                <tbody id="dataBody" class="bg-white divide-y divide-gray-200">
+                <tbody id="dataBody">
                     {% for record in records %}
-                    <tr>
-                        <td class="px-4 py-4">{{ record.university }}</td>
-                        <td class="px-4 py-4">{{ record.gmat_average or 'N/A' }}</td>
-                        <td class="px-4 py-4">{{ record.gre_average or 'N/A' }}</td>
-                        <td class="px-4 py-4">{{ record.experience_average or 'N/A' }}</td>
-                        <td class="px-4 py-4">{{ record.gpa_average or 'N/A' }}</td>
-                        <td class="px-4 py-4">{{ record.toefl_average or 'N/A' }}</td>
-                        <td class="px-4 py-4">{{ record.ielts_average or 'N/A' }}</td>
+                    <tr class="table-row">
+                        <td class="py-3 px-4">{{ record.university }}</td>
+                        <!-- <td class="py-3 px-4">{{ record.course }}</td> -->
+                        <td class="py-3 px-4">{{ record.gmat_average or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ record.gre_average or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ record.experience_average or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ record.gpa_average or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ record.toefl_average or 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ record.ielts_average or 'N/A' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -225,9 +262,12 @@
         </div>
 
         <!-- Mobile Card View -->
-        <div id="mobileCards" class="sm:hidden"></div>
+        <div id="mobileCards" class="mt-6"></div>
     </div>
-
+    <footer class="bg-gray-800 text-white text-center py-4 mt-auto">
+        <p>&copy; 2024 admit.fyi. All rights reserved.</p>
+    </footer>
+    
 </body>
 
 </html>
