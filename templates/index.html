@@ -135,7 +135,6 @@
                     const row = `
                         <tr class="table-row">
                             <td class="py-3 px-4 text-gray-800">${record.university}</td>
-                            <td class="py-3 px-4 text-gray-800">${record.course}</td>
                             <td class="py-3 px-4 text-gray-800">${record.gmat_average || 'N/A'}</td>
                             <td class="py-3 px-4 text-gray-800">${record.gre_average || 'N/A'}</td>
                             <td class="py-3 px-4 text-gray-800">${record.experience_average || 'N/A'}</td>
@@ -189,7 +188,7 @@
             <span class="text-2xl font-semibold -mt-1 text-gray-900">admit.fyi</span>
         </a>
         <!-- Button with Right Margin -->
-        <a href="/update" class="btn-primary mr-4 sm:mr-8">Submit Data</a>
+        <a href="/update" class="btn-primary">Submit Data</a>
     </div>
 </nav>
 
@@ -236,7 +235,7 @@
                 <thead class="table-header text-sm bg-gray-200">
                     <tr>
                         <th class="py-3 px-4 text-left w-1/5">University</th>
-                        <th class="py-3 px-4 text-left w-1/5">Course</th>
+                        <!-- <th class="py-3 px-4 text-left w-1/5">Course</th> -->
                         <th class="py-3 px-4 text-left w-1/6">GMAT</th>
                         <th class="py-3 px-4 text-left w-1/6">GRE</th>
                         <th class="py-3 px-4 text-left w-1/6">Experience</th>
@@ -249,7 +248,7 @@
                     {% for record in records %}
                     <tr class="table-row">
                         <td class="py-3 px-4">{{ record.university }}</td>
-                        <td class="py-3 px-4">{{ record.course }}</td>
+                        <!-- <td class="py-3 px-4">{{ record.course }}</td> -->
                         <td class="py-3 px-4">{{ record.gmat_average or 'N/A' }}</td>
                         <td class="py-3 px-4">{{ record.gre_average or 'N/A' }}</td>
                         <td class="py-3 px-4">{{ record.experience_average or 'N/A' }}</td>
