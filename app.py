@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import pandas as pd
+import os
 
 app = Flask(__name__)
 
-# Path to your CSV file
-CSV_FILE = 'database.csv'
+CSV_FILE = os.path.join(os.path.dirname(__file__), 'database.csv')
 
 def load_data():
     """Load the CSV file data."""
