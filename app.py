@@ -58,13 +58,15 @@ def index():
 def get_universities(course):
     """Return university data for a selected course."""
     data = load_data()  # Load the CSV data
+    logger.info(f"Received request for course: {course}")
 
-    # Filter the data based on the selected course
-    filtered_data = data[data['course'].str.strip().str.lower() == course.strip().lower()]  # Normalize course names
+    # Normalize course names
+    normalized_course = course.strip().lower()
+    filtered_data = data[data['course'].str.strip().str.lower() == normalized_course]
 
     if filtered_data.empty:
-        logger.warning(f"No data found for course: {course}")
-        return jsonify({"error": "No data found for the selected course"}), 404
+        logger.warning(f"No data found for course: {normalized_course}")
+        return jsonify({"error": f"No data found for the selected course: {course}"}), 404
 
     records = filtered_data.to_dict(orient='records')
     return jsonify(records)
