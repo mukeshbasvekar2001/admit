@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-import pandas as pd
+import csv
 import os
 from threading import Lock
 import logging
@@ -22,17 +22,22 @@ def load_data():
     with lock:
         try:
             logger.info("Loading data from CSV")
-            return pd.read_csv(CSV_FILE)
+            with open(CSV_FILE, mode='r') as file:
+                reader = csv.DictReader(file)
+                return list(reader)
         except Exception as e:
             logger.error(f"Error loading CSV file: {e}")
-            return pd.DataFrame()
+            return []
 
 def save_data(data):
-    """Save the DataFrame back to the CSV file in a thread-safe manner."""
+    """Save the data back to the CSV file in a thread-safe manner."""
     with lock:
         try:
             logger.info("Saving data to CSV")
-            data.to_csv(CSV_FILE, index=False)
+            with open(CSV_FILE, mode='w', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames=data[0].keys())
+                writer.writeheader()
+                writer.writerows(data)
         except Exception as e:
             logger.error(f"Error saving CSV file: {e}")
 
@@ -40,43 +45,41 @@ def save_data(data):
 def index():
     """Displays the courses and related data."""
     data = load_data()
-    if data.empty:
+    if not data:
         return "No data available", 404
 
-    courses = data['course'].unique()  # Get unique courses for selection
-    if len(courses) == 0:
+    courses = {entry['course'] for entry in data}  # Get unique courses
+    if not courses:
         return "No courses found", 404
 
-    default_course = courses[0]  # Select the first course as default
+    default_course = next(iter(courses))  # Select the first course as default
 
     # Filter the data for the default course
-    filtered_data = data[data['course'] == default_course].to_dict(orient='records')
+    filtered_data = [entry for entry in data if entry['course'] == default_course]
 
     return render_template('index.html', courses=courses, default_course=default_course, records=filtered_data)
 
 @app.route('/get_universities/<course>', methods=['GET'])
 def get_universities(course):
     """Return university data for a selected course."""
-    data = load_data()  # Load the CSV data
+    data = load_data()
     logger.info(f"Received request for course: {course}")
 
-    # Normalize course names
     normalized_course = course.strip().lower()
-    filtered_data = data[data['course'].str.strip().str.lower() == normalized_course]
+    filtered_data = [entry for entry in data if entry['course'].strip().lower() == normalized_course]
 
-    if filtered_data.empty:
+    if not filtered_data:
         logger.warning(f"No data found for course: {normalized_course}")
         return jsonify({"error": f"No data found for the selected course: {course}"}), 404
 
-    records = filtered_data.to_dict(orient='records')
-    return jsonify(records)
+    return jsonify(filtered_data)
 
 @app.route('/get_courses/<university>', methods=['GET'])
 def get_courses(university):
     """Return courses for the selected university."""
     data = load_data()
-    courses = data[data['university'] == university]['course'].unique().tolist()
-    return jsonify(courses)
+    courses = {entry['course'] for entry in data if entry['university'] == university}
+    return jsonify(list(courses))
 
 @app.route('/update', methods=['GET', 'POST'])
 def update():
@@ -92,67 +95,67 @@ def update():
             toefl_score = request.form.get('toefl', type=float)
             ielts_score = request.form.get('ielts', type=float)
 
-            # Load the CSV data
             data = load_data()
 
             # Find the row that matches the university and course
-            row_index = data[(data['university'] == university) & (data['course'] == course)].index
+            for entry in data:
+                if entry['university'] == university and entry['course'] == course:
+                    # GMAT Updates
+                    gmat_count = int(entry.get('gmat_count', 0))
+                    gmat_sum = float(entry.get('gmat_average', 0)) * gmat_count
+                    if gmat_score is not None:
+                        gmat_sum += gmat_score
+                        gmat_count += 1
+                        entry['gmat_average'] = gmat_sum / gmat_count
+                    entry['gmat_count'] = gmat_count
 
-            if not row_index.empty:
-                row_index = row_index[0]  # Get the first matching row index
+                    # GRE Updates
+                    gre_count = int(entry.get('gre_count', 0))
+                    gre_sum = float(entry.get('gre_average', 0)) * gre_count
+                    if gre_score is not None:
+                        gre_sum += gre_score
+                        gre_count += 1
+                        entry['gre_average'] = gre_sum / gre_count
+                    entry['gre_count'] = gre_count
 
-                # GMAT Updates
-                gmat_avg = data.loc[row_index, 'gmat_average'] if pd.notnull(data.loc[row_index, 'gmat_average']) else 0
-                gmat_count = data.loc[row_index, 'gmat_count'] if pd.notnull(data.loc[row_index, 'gmat_count']) else 0
-                if gmat_score is not None:
-                    gmat_count += 1
-                    gmat_avg = (gmat_avg * (gmat_count - 1) + gmat_score) / gmat_count
+                    # Experience Updates
+                    exp_count = int(entry.get('experience_count', 0))
+                    exp_sum = float(entry.get('experience_average', 0)) * exp_count
+                    exp_count += 1
+                    exp_sum += experience_years
+                    entry['experience_average'] = exp_sum / exp_count
+                    entry['experience_count'] = exp_count
 
-                # GRE Updates
-                gre_avg = data.loc[row_index, 'gre_average'] if pd.notnull(data.loc[row_index, 'gre_average']) else 0
-                gre_count = data.loc[row_index, 'gre_count'] if pd.notnull(data.loc[row_index, 'gre_count']) else 0
-                if gre_score is not None:
-                    gre_count += 1
-                    gre_avg = (gre_avg * (gre_count - 1) + gre_score) / gre_count
+                    # GPA Updates
+                    gpa_count = int(entry.get('gpa_count', 0))
+                    gpa_sum = float(entry.get('gpa_average', 0)) * gpa_count
+                    gpa_count += 1
+                    gpa_sum += gpa
+                    entry['gpa_average'] = gpa_sum / gpa_count
+                    entry['gpa_count'] = gpa_count
 
-                # Experience Updates
-                exp_avg = data.loc[row_index, 'experience_average'] if pd.notnull(data.loc[row_index, 'experience_average']) else 0
-                exp_count = data.loc[row_index, 'experience_count'] if pd.notnull(data.loc[row_index, 'experience_count']) else 0
-                exp_count += 1
-                exp_avg = (exp_avg * (exp_count - 1) + experience_years) / exp_count
+                    # TOEFL Updates
+                    toefl_count = int(entry.get('toefl_count', 0))
+                    toefl_sum = float(entry.get('toefl_average', 0)) * toefl_count
+                    if toefl_score is not None:
+                        toefl_sum += toefl_score
+                        toefl_count += 1
+                        entry['toefl_average'] = toefl_sum / toefl_count
+                    entry['toefl_count'] = toefl_count
 
-                # GPA Updates
-                gpa_avg = data.loc[row_index, 'gpa_average'] if pd.notnull(data.loc[row_index, 'gpa_average']) else 0
-                gpa_count = data.loc[row_index, 'gpa_count'] if pd.notnull(data.loc[row_index, 'gpa_count']) else 0
-                gpa_count += 1
-                gpa_avg = (gpa_avg * (gpa_count - 1) + gpa) / gpa_count
+                    # IELTS Updates
+                    ielts_count = int(entry.get('ielts_count', 0))
+                    ielts_sum = float(entry.get('ielts_average', 0)) * ielts_count
+                    if ielts_score is not None:
+                        ielts_sum += ielts_score
+                        ielts_count += 1
+                        entry['ielts_average'] = ielts_sum / ielts_count
+                    entry['ielts_count'] = ielts_count
 
-                # TOEFL Updates
-                toefl_avg = data.loc[row_index, 'toefl_average'] if pd.notnull(data.loc[row_index, 'toefl_average']) else 0
-                toefl_count = data.loc[row_index, 'toefl_count'] if pd.notnull(data.loc[row_index, 'toefl_count']) else 0
-                if toefl_score is not None:
-                    toefl_count += 1
-                    toefl_avg = (toefl_avg * (toefl_count - 1) + toefl_score) / toefl_count
+                    break
 
-                # IELTS Updates
-                ielts_avg = data.loc[row_index, 'ielts_average'] if pd.notnull(data.loc[row_index, 'ielts_average']) else 0
-                ielts_count = data.loc[row_index, 'ielts_count'] if pd.notnull(data.loc[row_index, 'ielts_count']) else 0
-                if ielts_score is not None:
-                    ielts_count += 1
-                    ielts_avg = (ielts_avg * (ielts_count - 1) + ielts_score) / ielts_count
-
-                # Update the values in the DataFrame
-                data.loc[row_index, [
-                    'gmat_average', 'gmat_count', 'gre_average', 'gre_count',
-                    'experience_average', 'experience_count', 'gpa_average', 'gpa_count',
-                    'toefl_average', 'toefl_count', 'ielts_average', 'ielts_count'
-                ]] = [
-                    gmat_avg, gmat_count, gre_avg, gre_count, exp_avg, exp_count,
-                    gpa_avg, gpa_count, toefl_avg, toefl_count, ielts_avg, ielts_count
-                ]
-
-                # Save the updated data
-                save_data(data)
+            # Save the updated data
+            save_data(data)
 
             return redirect(url_for('index'))
         except Exception as e:
@@ -161,8 +164,8 @@ def update():
 
     # Get the available universities for the form
     data = load_data()
-    universities = data['university'].unique()
-    return render_template('update.html', universities=universities)
+    universities = {entry['university'] for entry in data}
+    return render_template('update.html', universities=list(universities))
 
 if __name__ == '__main__':
     app.run(debug=os.getenv("DEBUG", "False") == "True")
