@@ -4,8 +4,10 @@ import os
 from threading import Lock
 import logging
 from pathlib import Path
+from flask_compress import Compress
 
 app = Flask(__name__)
+Compress(app)  # Enable compression for faster load times
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -18,20 +20,30 @@ lock = Lock()
 CSV_FILE = os.getenv("CSV_FILE", str(Path(__file__).resolve().parent / 'database.csv'))
 logger.info(f"Using CSV file at: {CSV_FILE}")
 
+# Global variables to cache the data
+data_cache = []
+data_last_updated = None
+
 def load_data():
-    """Load the CSV file data in a thread-safe manner."""
+    """Load the CSV file data in a thread-safe manner only if cache is empty or outdated."""
+    global data_cache, data_last_updated
     with lock:
+        if data_cache and data_last_updated == os.path.getmtime(CSV_FILE):
+            return data_cache
         try:
             logger.info("Loading data from CSV")
             with open(CSV_FILE, mode='r') as file:
                 reader = csv.DictReader(file)
-                return list(reader)
+                data_cache = list(reader)
+                data_last_updated = os.path.getmtime(CSV_FILE)
+                return data_cache
         except Exception as e:
             logger.error(f"Error loading CSV file: {e}")
             return []
 
 def save_data(data):
-    """Save the data back to the CSV file in a thread-safe manner."""
+    """Save the data back to the CSV file in a thread-safe manner and update cache."""
+    global data_cache
     with lock:
         try:
             logger.info("Saving data to CSV")
@@ -39,8 +51,19 @@ def save_data(data):
                 writer = csv.DictWriter(file, fieldnames=data[0].keys())
                 writer.writeheader()
                 writer.writerows(data)
+            # Update cache after saving data
+            data_cache = data
+            data_last_updated = os.path.getmtime(CSV_FILE)
         except Exception as e:
             logger.error(f"Error saving CSV file: {e}")
+
+def format_averages(data):
+    """Format the averages to two decimal places."""
+    for entry in data:
+        for key in ['gmat_average', 'gre_average', 'experience_average', 'gpa_average', 'toefl_average', 'ielts_average']:
+            if entry.get(key) is not None:
+                entry[key] = f"{float(entry[key]):.1f}"
+    return data
 
 @app.route('/')
 def index():
@@ -49,10 +72,14 @@ def index():
     if not data:
         return "No data available", 404
 
+    # Format averages for display
+    data = format_averages(data)
+
     courses = {entry['course'] for entry in data}
     if not courses:
         return "No courses found", 404
 
+    # Pass only the default course data to the frontend
     default_course = next(iter(courses))
     filtered_data = [entry for entry in data if entry['course'] == default_course]
 
@@ -67,6 +94,9 @@ def get_universities(course):
 
     if not filtered_data:
         return jsonify({"error": f"No data found for the selected course: {course}"}), 404
+
+    # Format averages for display
+    filtered_data = format_averages(filtered_data)
 
     return jsonify(filtered_data)
 
@@ -96,6 +126,7 @@ def update():
 
             for entry in data:
                 if entry['university'] == university and entry['course'] == course:
+                    # Update GMAT
                     gmat_count = int(entry.get('gmat_count', 0))
                     gmat_sum = float(entry.get('gmat_average', 0)) * gmat_count
                     if gmat_score is not None:
@@ -104,6 +135,7 @@ def update():
                         entry['gmat_average'] = gmat_sum / gmat_count
                     entry['gmat_count'] = gmat_count
 
+                    # Update GRE
                     gre_count = int(entry.get('gre_count', 0))
                     gre_sum = float(entry.get('gre_average', 0)) * gre_count
                     if gre_score is not None:
@@ -112,6 +144,7 @@ def update():
                         entry['gre_average'] = gre_sum / gre_count
                     entry['gre_count'] = gre_count
 
+                    # Update Experience
                     exp_count = int(entry.get('experience_count', 0))
                     exp_sum = float(entry.get('experience_average', 0)) * exp_count
                     exp_sum += experience_years
@@ -119,6 +152,7 @@ def update():
                     entry['experience_average'] = exp_sum / exp_count
                     entry['experience_count'] = exp_count
 
+                    # Update GPA
                     gpa_count = int(entry.get('gpa_count', 0))
                     gpa_sum = float(entry.get('gpa_average', 0)) * gpa_count
                     gpa_sum += gpa
@@ -126,6 +160,7 @@ def update():
                     entry['gpa_average'] = gpa_sum / gpa_count
                     entry['gpa_count'] = gpa_count
 
+                    # Update TOEFL
                     toefl_count = int(entry.get('toefl_count', 0))
                     toefl_sum = float(entry.get('toefl_average', 0)) * toefl_count
                     if toefl_score is not None:
@@ -134,6 +169,7 @@ def update():
                         entry['toefl_average'] = toefl_sum / toefl_count
                     entry['toefl_count'] = toefl_count
 
+                    # Update IELTS
                     ielts_count = int(entry.get('ielts_count', 0))
                     ielts_sum = float(entry.get('ielts_average', 0)) * ielts_count
                     if ielts_score is not None:
