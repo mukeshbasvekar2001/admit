@@ -2,8 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 import csv
 import os
 from threading import Lock
-import logging
 from pathlib import Path
+import logging
 
 app = Flask(__name__)
 
@@ -18,20 +18,29 @@ lock = Lock()
 CSV_FILE = os.getenv("CSV_FILE", str(Path(__file__).resolve().parent / 'database.csv'))
 logger.info(f"Using CSV file at: {CSV_FILE}")
 
+# In-memory cache for CSV data
+cached_data = None
+
 def load_data():
-    """Load the CSV file data in a thread-safe manner."""
+    """Load the CSV file data with caching and in a thread-safe manner."""
+    global cached_data
+    if cached_data is not None:
+        return cached_data
+    
     with lock:
         try:
             logger.info("Loading data from CSV")
             with open(CSV_FILE, mode='r') as file:
                 reader = csv.DictReader(file)
-                return list(reader)
+                cached_data = list(reader)
+                return cached_data
         except Exception as e:
             logger.error(f"Error loading CSV file: {e}")
             return []
 
 def save_data(data):
-    """Save the data back to the CSV file in a thread-safe manner."""
+    """Save the data back to the CSV file in a thread-safe manner and update cache."""
+    global cached_data
     with lock:
         try:
             logger.info("Saving data to CSV")
@@ -39,6 +48,7 @@ def save_data(data):
                 writer = csv.DictWriter(file, fieldnames=data[0].keys())
                 writer.writeheader()
                 writer.writerows(data)
+            cached_data = data  # Update cache
         except Exception as e:
             logger.error(f"Error saving CSV file: {e}")
 
@@ -54,9 +64,7 @@ def index():
         return "No courses found", 404
 
     default_course = next(iter(courses))
-    filtered_data = [entry for entry in data if entry['course'] == default_course]
-
-    return render_template('index.html', courses=courses, default_course=default_course, records=filtered_data)
+    return render_template('index.html', courses=courses, default_course=default_course)
 
 @app.route('/get_universities/<course>', methods=['GET'])
 def get_universities(course):
@@ -96,52 +104,7 @@ def update():
 
             for entry in data:
                 if entry['university'] == university and entry['course'] == course:
-                    gmat_count = int(entry.get('gmat_count', 0))
-                    gmat_sum = float(entry.get('gmat_average', 0)) * gmat_count
-                    if gmat_score is not None:
-                        gmat_sum += gmat_score
-                        gmat_count += 1
-                        entry['gmat_average'] = gmat_sum / gmat_count
-                    entry['gmat_count'] = gmat_count
-
-                    gre_count = int(entry.get('gre_count', 0))
-                    gre_sum = float(entry.get('gre_average', 0)) * gre_count
-                    if gre_score is not None:
-                        gre_sum += gre_score
-                        gre_count += 1
-                        entry['gre_average'] = gre_sum / gre_count
-                    entry['gre_count'] = gre_count
-
-                    exp_count = int(entry.get('experience_count', 0))
-                    exp_sum = float(entry.get('experience_average', 0)) * exp_count
-                    exp_sum += experience_years
-                    exp_count += 1
-                    entry['experience_average'] = exp_sum / exp_count
-                    entry['experience_count'] = exp_count
-
-                    gpa_count = int(entry.get('gpa_count', 0))
-                    gpa_sum = float(entry.get('gpa_average', 0)) * gpa_count
-                    gpa_sum += gpa
-                    gpa_count += 1
-                    entry['gpa_average'] = gpa_sum / gpa_count
-                    entry['gpa_count'] = gpa_count
-
-                    toefl_count = int(entry.get('toefl_count', 0))
-                    toefl_sum = float(entry.get('toefl_average', 0)) * toefl_count
-                    if toefl_score is not None:
-                        toefl_sum += toefl_score
-                        toefl_count += 1
-                        entry['toefl_average'] = toefl_sum / toefl_count
-                    entry['toefl_count'] = toefl_count
-
-                    ielts_count = int(entry.get('ielts_count', 0))
-                    ielts_sum = float(entry.get('ielts_average', 0)) * ielts_count
-                    if ielts_score is not None:
-                        ielts_sum += ielts_score
-                        ielts_count += 1
-                        entry['ielts_average'] = ielts_sum / ielts_count
-                    entry['ielts_count'] = ielts_count
-
+                    update_entry(entry, gmat_score, gre_score, experience_years, gpa, toefl_score, ielts_score)
                     break
 
             save_data(data)
@@ -154,6 +117,39 @@ def update():
     data = load_data()
     universities = {entry['university'] for entry in data}
     return render_template('update.html', universities=list(universities))
+
+def update_entry(entry, gmat_score, gre_score, experience_years, gpa, toefl_score, ielts_score):
+    """Helper function to update entry data and averages."""
+    gmat_count, gre_count, exp_count, gpa_count, toefl_count, ielts_count = (
+        int(entry.get('gmat_count', 0)),
+        int(entry.get('gre_count', 0)),
+        int(entry.get('experience_count', 0)),
+        int(entry.get('gpa_count', 0)),
+        int(entry.get('toefl_count', 0)),
+        int(entry.get('ielts_count', 0)),
+    )
+
+    if gmat_score is not None:
+        entry['gmat_average'] = (float(entry.get('gmat_average', 0)) * gmat_count + gmat_score) / (gmat_count + 1)
+        entry['gmat_count'] = gmat_count + 1
+
+    if gre_score is not None:
+        entry['gre_average'] = (float(entry.get('gre_average', 0)) * gre_count + gre_score) / (gre_count + 1)
+        entry['gre_count'] = gre_count + 1
+
+    entry['experience_average'] = (float(entry.get('experience_average', 0)) * exp_count + experience_years) / (exp_count + 1)
+    entry['experience_count'] = exp_count + 1
+
+    entry['gpa_average'] = (float(entry.get('gpa_average', 0)) * gpa_count + gpa) / (gpa_count + 1)
+    entry['gpa_count'] = gpa_count + 1
+
+    if toefl_score is not None:
+        entry['toefl_average'] = (float(entry.get('toefl_average', 0)) * toefl_count + toefl_score) / (toefl_count + 1)
+        entry['toefl_count'] = toefl_count + 1
+
+    if ielts_score is not None:
+        entry['ielts_average'] = (float(entry.get('ielts_average', 0)) * ielts_count + ielts_score) / (ielts_count + 1)
+        entry['ielts_count'] = ielts_count + 1
 
 if __name__ == '__main__':
     app.run(debug=os.getenv("DEBUG", "False") == "True")
