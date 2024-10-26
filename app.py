@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-from threading import Lock
-from pathlib import Path
-import sqlite3
-import logging
-from flask_compress import Compress
+import csv
 import os
+from threading import Lock
+import logging
+from pathlib import Path
+from flask_compress import Compress
 
 app = Flask(__name__)
 Compress(app)  # Enable compression for faster load times
@@ -13,20 +13,52 @@ Compress(app)  # Enable compression for faster load times
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# SQLite database path
-DATABASE = str(Path(__file__).resolve().parent / 'database.db')
-
-# Lock for thread safety
+# File lock to prevent race conditions
 lock = Lock()
 
-def get_db_connection():
-    """Create a new database connection."""
-    conn = sqlite3.connect(DATABASE, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    return conn
+# CSV file path, configurable via environment variable
+CSV_FILE = os.getenv("CSV_FILE", str(Path(__file__).resolve().parent / 'database.csv'))
+logger.info(f"Using CSV file at: {CSV_FILE}")
+
+# Global variables to cache the data
+data_cache = []
+data_last_updated = None
+
+def load_data():
+    """Load the CSV file data in a thread-safe manner only if cache is empty or outdated."""
+    global data_cache, data_last_updated
+    with lock:
+        if data_cache and data_last_updated == os.path.getmtime(CSV_FILE):
+            return data_cache
+        try:
+            logger.info("Loading data from CSV")
+            with open(CSV_FILE, mode='r') as file:
+                reader = csv.DictReader(file)
+                data_cache = list(reader)
+                data_last_updated = os.path.getmtime(CSV_FILE)
+                return data_cache
+        except Exception as e:
+            logger.error(f"Error loading CSV file: {e}")
+            return []
+
+def save_data(data):
+    """Save the data back to the CSV file in a thread-safe manner and update cache."""
+    global data_cache
+    with lock:
+        try:
+            logger.info("Saving data to CSV")
+            with open(CSV_FILE, mode='w', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames=data[0].keys())
+                writer.writeheader()
+                writer.writerows(data)
+            # Update cache after saving data
+            data_cache = data
+            data_last_updated = os.path.getmtime(CSV_FILE)
+        except Exception as e:
+            logger.error(f"Error saving CSV file: {e}")
 
 def format_averages(data):
-    """Format the averages to two decimal places for display."""
+    """Format the averages to two decimal places."""
     for entry in data:
         for key in ['gmat_average', 'gre_average', 'experience_average', 'gpa_average', 'toefl_average', 'ielts_average']:
             if entry.get(key) is not None:
@@ -35,36 +67,30 @@ def format_averages(data):
 
 @app.route('/')
 def index():
-    """Display a default course with related data."""
-    with get_db_connection() as conn:
-        courses = conn.execute('SELECT DISTINCT course FROM university_data').fetchall()
-        if not courses:
-            return "No courses found", 404
-
-        # Convert to a set of courses
-        courses = {row['course'] for row in courses}
-        default_course = next(iter(courses))
-
-        # Load data for only the default course
-        filtered_data = conn.execute(
-            'SELECT * FROM university_data WHERE course = ?', (default_course,)
-        ).fetchall()
-        filtered_data = [dict(row) for row in filtered_data]
+    """Displays the courses and related data."""
+    data = load_data()
+    if not data:
+        return "No data available", 404
 
     # Format averages for display
-    filtered_data = format_averages(filtered_data)
+    data = format_averages(data)
+
+    courses = {entry['course'] for entry in data}
+    if not courses:
+        return "No courses found", 404
+
+    # Pass only the default course data to the frontend
+    default_course = next(iter(courses))
+    filtered_data = [entry for entry in data if entry['course'] == default_course]
 
     return render_template('index.html', courses=courses, default_course=default_course, records=filtered_data)
 
 @app.route('/get_universities/<course>', methods=['GET'])
 def get_universities(course):
-    """Return university data for a selected course only."""
-    with get_db_connection() as conn:
-        normalized_course = course.strip().lower()
-        filtered_data = conn.execute(
-            'SELECT * FROM university_data WHERE LOWER(course) = ?', (normalized_course,)
-        ).fetchall()
-        filtered_data = [dict(row) for row in filtered_data]
+    """Return university data for a selected course."""
+    data = load_data()
+    normalized_course = course.strip().lower()
+    filtered_data = [entry for entry in data if entry['course'].strip().lower() == normalized_course]
 
     if not filtered_data:
         return jsonify({"error": f"No data found for the selected course: {course}"}), 404
@@ -76,18 +102,14 @@ def get_universities(course):
 
 @app.route('/get_courses/<university>', methods=['GET'])
 def get_courses(university):
-    """Return courses for a selected university."""
-    with get_db_connection() as conn:
-        courses = conn.execute(
-            'SELECT DISTINCT course FROM university_data WHERE university = ?', (university,)
-        ).fetchall()
-        courses = [row['course'] for row in courses]
-
-    return jsonify(courses)
+    """Return courses for the selected university."""
+    data = load_data()
+    courses = {entry['course'] for entry in data if entry['university'] == university}
+    return jsonify(list(courses))
 
 @app.route('/update', methods=['GET', 'POST'])
 def update():
-    """Handle updating the university course data."""
+    """Handles updating the university course data."""
     if request.method == 'POST':
         try:
             university = request.form['university']
@@ -99,56 +121,75 @@ def update():
             toefl_score = request.form.get('toefl', type=float) or None
             ielts_score = request.form.get('ielts', type=float) or None
 
-            with get_db_connection() as conn:
-                # Get current data for the university and course
-                entry = conn.execute(
-                    'SELECT * FROM university_data WHERE university = ? AND course = ?',
-                    (university, course)
-                ).fetchone()
+            data = load_data()
+            logger.info(f"Form submitted with data: {request.form}")
 
-                if entry:
-                    # Calculate and update averages
-                    def update_average(score, count, avg):
-                        """Helper to calculate new average."""
-                        if score is not None:
-                            count += 1
-                            avg = ((avg * (count - 1)) + score) / count
-                        return count, avg
+            for entry in data:
+                if entry['university'] == university and entry['course'] == course:
+                    # Update GMAT
+                    gmat_count = int(entry.get('gmat_count', 0))
+                    gmat_sum = float(entry.get('gmat_average', 0)) * gmat_count
+                    if gmat_score is not None:
+                        gmat_sum += gmat_score
+                        gmat_count += 1
+                        entry['gmat_average'] = gmat_sum / gmat_count
+                    entry['gmat_count'] = gmat_count
 
-                    gmat_count, gmat_avg = update_average(gmat_score, entry['gmat_count'], entry['gmat_average'])
-                    gre_count, gre_avg = update_average(gre_score, entry['gre_count'], entry['gre_average'])
-                    exp_count, exp_avg = update_average(experience_years, entry['experience_count'], entry['experience_average'])
-                    gpa_count, gpa_avg = update_average(gpa, entry['gpa_count'], entry['gpa_average'])
-                    toefl_count, toefl_avg = update_average(toefl_score, entry['toefl_count'], entry['toefl_average'])
-                    ielts_count, ielts_avg = update_average(ielts_score, entry['ielts_count'], entry['ielts_average'])
+                    # Update GRE
+                    gre_count = int(entry.get('gre_count', 0))
+                    gre_sum = float(entry.get('gre_average', 0)) * gre_count
+                    if gre_score is not None:
+                        gre_sum += gre_score
+                        gre_count += 1
+                        entry['gre_average'] = gre_sum / gre_count
+                    entry['gre_count'] = gre_count
 
-                    # Update the database
-                    conn.execute('''
-                        UPDATE university_data SET
-                            gmat_average = ?, gmat_count = ?,
-                            gre_average = ?, gre_count = ?,
-                            experience_average = ?, experience_count = ?,
-                            gpa_average = ?, gpa_count = ?,
-                            toefl_average = ?, toefl_count = ?,
-                            ielts_average = ?, ielts_count = ?
-                        WHERE university = ? AND course = ?
-                    ''', (gmat_avg, gmat_count, gre_avg, gre_count, exp_avg, exp_count,
-                          gpa_avg, gpa_count, toefl_avg, toefl_count, ielts_avg, ielts_count,
-                          university, course))
-                    conn.commit()
+                    # Update Experience
+                    exp_count = int(entry.get('experience_count', 0))
+                    exp_sum = float(entry.get('experience_average', 0)) * exp_count
+                    exp_sum += experience_years
+                    exp_count += 1
+                    entry['experience_average'] = exp_sum / exp_count
+                    entry['experience_count'] = exp_count
 
+                    # Update GPA
+                    gpa_count = int(entry.get('gpa_count', 0))
+                    gpa_sum = float(entry.get('gpa_average', 0)) * gpa_count
+                    gpa_sum += gpa
+                    gpa_count += 1
+                    entry['gpa_average'] = gpa_sum / gpa_count
+                    entry['gpa_count'] = gpa_count
+
+                    # Update TOEFL
+                    toefl_count = int(entry.get('toefl_count', 0))
+                    toefl_sum = float(entry.get('toefl_average', 0)) * toefl_count
+                    if toefl_score is not None:
+                        toefl_sum += toefl_score
+                        toefl_count += 1
+                        entry['toefl_average'] = toefl_sum / toefl_count
+                    entry['toefl_count'] = toefl_count
+
+                    # Update IELTS
+                    ielts_count = int(entry.get('ielts_count', 0))
+                    ielts_sum = float(entry.get('ielts_average', 0)) * ielts_count
+                    if ielts_score is not None:
+                        ielts_sum += ielts_score
+                        ielts_count += 1
+                        entry['ielts_average'] = ielts_sum / ielts_count
+                    entry['ielts_count'] = ielts_count
+
+                    break
+
+            save_data(data)
             logger.info(f"Updated data successfully for {university} - {course}")
             return redirect(url_for('index'))
         except Exception as e:
             logger.error(f"Error updating data: {e}")
             return "Error updating data", 500
 
-    # Load list of universities
-    with get_db_connection() as conn:
-        universities = conn.execute('SELECT DISTINCT university FROM university_data').fetchall()
-        universities = [row['university'] for row in universities]
-
-    return render_template('update.html', universities=universities)
+    data = load_data()
+    universities = {entry['university'] for entry in data}
+    return render_template('update.html', universities=list(universities))
 
 if __name__ == '__main__':
-    app.run(debug=os.getenv("DEBUG", "False") == "True", threaded=True)
+    app.run(debug=os.getenv("DEBUG", "False") == "True")
