@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import csv
 import os
-from threading import Lock
+from threading import Lock, Timer
 import logging
 from pathlib import Path
 from flask_compress import Compress
+import time
 
 app = Flask(__name__)
 Compress(app)  # Enable compression for faster load times
@@ -23,19 +24,20 @@ logger.info(f"Using CSV file at: {CSV_FILE}")
 # Global variables to cache the data
 data_cache = []
 data_last_updated = None
+cache_expiration = 60  # Reload data every 60 seconds
 
 def load_data():
-    """Load the CSV file data in a thread-safe manner only if cache is empty or outdated."""
+    """Load the CSV file data in a thread-safe manner."""
     global data_cache, data_last_updated
     with lock:
-        if data_cache and data_last_updated == os.path.getmtime(CSV_FILE):
+        if data_cache and data_last_updated and (time.time() - data_last_updated < cache_expiration):
             return data_cache
         try:
             logger.info("Loading data from CSV")
             with open(CSV_FILE, mode='r') as file:
                 reader = csv.DictReader(file)
                 data_cache = list(reader)
-                data_last_updated = os.path.getmtime(CSV_FILE)
+                data_last_updated = time.time()  # Use current time for caching
                 return data_cache
         except Exception as e:
             logger.error(f"Error loading CSV file: {e}")
@@ -53,12 +55,12 @@ def save_data(data):
                 writer.writerows(data)
             # Update cache after saving data
             data_cache = data
-            data_last_updated = os.path.getmtime(CSV_FILE)
+            data_last_updated = time.time()  # Update last updated time
         except Exception as e:
             logger.error(f"Error saving CSV file: {e}")
 
 def format_averages(data):
-    """Format the averages to two decimal places."""
+    """Format the averages to one decimal place."""
     for entry in data:
         for key in ['gmat_average', 'gre_average', 'experience_average', 'gpa_average', 'toefl_average', 'ielts_average']:
             if entry.get(key) is not None:
