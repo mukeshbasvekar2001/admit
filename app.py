@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-import csv
 import os
 from threading import Lock
 import logging
 from pathlib import Path
+import pandas as pd
 from flask_compress import Compress
 
 app = Flask(__name__)
@@ -25,18 +25,19 @@ data_cache = []
 data_last_updated = None
 
 def load_data():
-    """Load the CSV file data in a thread-safe manner only if cache is empty or outdated."""
+    """Load the CSV file data using Pandas if the cache is empty or outdated."""
     global data_cache, data_last_updated
     with lock:
+        # Check if cache exists and is up-to-date
         if data_cache and data_last_updated == os.path.getmtime(CSV_FILE):
             return data_cache
         try:
-            logger.info("Loading data from CSV")
-            with open(CSV_FILE, mode='r') as file:
-                reader = csv.DictReader(file)
-                data_cache = list(reader)
-                data_last_updated = os.path.getmtime(CSV_FILE)
-                return data_cache
+            logger.info("Loading data from CSV with Pandas")
+            # Using pandas for faster CSV loading
+            data = pd.read_csv(CSV_FILE).to_dict(orient='records')
+            data_cache = data
+            data_last_updated = os.path.getmtime(CSV_FILE)
+            return data_cache
         except Exception as e:
             logger.error(f"Error loading CSV file: {e}")
             return []
@@ -47,10 +48,9 @@ def save_data(data):
     with lock:
         try:
             logger.info("Saving data to CSV")
-            with open(CSV_FILE, mode='w', newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=data[0].keys())
-                writer.writeheader()
-                writer.writerows(data)
+            # Convert the data back to a DataFrame for saving
+            df = pd.DataFrame(data)
+            df.to_csv(CSV_FILE, index=False)
             # Update cache after saving data
             data_cache = data
             data_last_updated = os.path.getmtime(CSV_FILE)
