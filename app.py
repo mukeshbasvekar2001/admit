@@ -1,45 +1,64 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-import pandas as pd
+import csv
 import os
-import time
 from threading import Lock
+import logging
+from pathlib import Path
 from flask_compress import Compress
 
 app = Flask(__name__)
 Compress(app)  # Enable compression for faster load times
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # File lock to prevent race conditions
 lock = Lock()
 
 # CSV file path, configurable via environment variable
-CSV_FILE = os.getenv("CSV_FILE", os.path.join(os.path.dirname(__file__), 'database.csv'))
+CSV_FILE = os.getenv("CSV_FILE", str(Path(__file__).resolve().parent / 'database.csv'))
+logger.info(f"Using CSV file at: {CSV_FILE}")
 
 # Global variables to cache the data
 data_cache = []
 data_last_updated = None
 
-# Cache expiry time (in seconds)
-CACHE_EXPIRY_TIME = 60 * 5  # 5 minutes
-
 def load_data():
-    """Load the CSV file data into memory using Pandas, with caching."""
+    """Load the CSV file data in a thread-safe manner only if cache is empty or outdated."""
     global data_cache, data_last_updated
-    # Check if data is still fresh
-    if data_last_updated and (time.time() - data_last_updated) < CACHE_EXPIRY_TIME:
-        return  # Data is still fresh
+    with lock:
+        if data_cache and data_last_updated == os.path.getmtime(CSV_FILE):
+            return data_cache
+        try:
+            logger.info("Loading data from CSV")
+            with open(CSV_FILE, mode='r') as file:
+                reader = csv.DictReader(file)
+                data_cache = list(reader)
+                data_last_updated = os.path.getmtime(CSV_FILE)
+                return data_cache
+        except Exception as e:
+            logger.error(f"Error loading CSV file: {e}")
+            return []
 
+def save_data(data):
+    """Save the data back to the CSV file in a thread-safe manner and update cache."""
+    global data_cache
     with lock:
         try:
-            # Load data with Pandas
-            df = pd.read_csv(CSV_FILE)
-            data_cache = df.to_dict(orient='records')
-            data_last_updated = time.time()  # Update last updated time
+            logger.info("Saving data to CSV")
+            with open(CSV_FILE, mode='w', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames=data[0].keys())
+                writer.writeheader()
+                writer.writerows(data)
+            # Update cache after saving data
+            data_cache = data
+            data_last_updated = os.path.getmtime(CSV_FILE)
         except Exception as e:
-            data_cache = []
-            print(f"Error loading data: {e}")
+            logger.error(f"Error saving CSV file: {e}")
 
 def format_averages(data):
-    """Format the averages to one decimal place."""
+    """Format the averages to two decimal places."""
     for entry in data:
         for key in ['gmat_average', 'gre_average', 'experience_average', 'gpa_average', 'toefl_average', 'ielts_average']:
             if entry.get(key) is not None:
@@ -49,27 +68,29 @@ def format_averages(data):
 @app.route('/')
 def index():
     """Displays the courses and related data."""
-    load_data()  # Ensure data is loaded
-    if not data_cache:
+    data = load_data()
+    if not data:
         return "No data available", 404
 
     # Format averages for display
-    formatted_data = format_averages(data_cache)
-    courses = {entry['course'] for entry in formatted_data}
+    data = format_averages(data)
+
+    courses = {entry['course'] for entry in data}
     if not courses:
         return "No courses found", 404
 
     # Pass only the default course data to the frontend
     default_course = next(iter(courses))
-    filtered_data = [entry for entry in formatted_data if entry['course'] == default_course]
+    filtered_data = [entry for entry in data if entry['course'] == default_course]
 
     return render_template('index.html', courses=courses, default_course=default_course, records=filtered_data)
 
 @app.route('/get_universities/<course>', methods=['GET'])
 def get_universities(course):
     """Return university data for a selected course."""
+    data = load_data()
     normalized_course = course.strip().lower()
-    filtered_data = [entry for entry in data_cache if entry['course'].strip().lower() == normalized_course]
+    filtered_data = [entry for entry in data if entry['course'].strip().lower() == normalized_course]
 
     if not filtered_data:
         return jsonify({"error": f"No data found for the selected course: {course}"}), 404
@@ -82,7 +103,8 @@ def get_universities(course):
 @app.route('/get_courses/<university>', methods=['GET'])
 def get_courses(university):
     """Return courses for the selected university."""
-    courses = {entry['course'] for entry in data_cache if entry['university'] == university}
+    data = load_data()
+    courses = {entry['course'] for entry in data if entry['university'] == university}
     return jsonify(list(courses))
 
 @app.route('/update', methods=['GET', 'POST'])
@@ -99,7 +121,10 @@ def update():
             toefl_score = request.form.get('toefl', type=float) or None
             ielts_score = request.form.get('ielts', type=float) or None
 
-            for entry in data_cache:
+            data = load_data()
+            logger.info(f"Form submitted with data: {request.form}")
+
+            for entry in data:
                 if entry['university'] == university and entry['course'] == course:
                     # Update GMAT
                     gmat_count = int(entry.get('gmat_count', 0))
@@ -155,26 +180,16 @@ def update():
 
                     break
 
-            save_data()  # Save data after the update
+            save_data(data)
+            logger.info(f"Updated data successfully for {university} - {course}")
             return redirect(url_for('index'))
         except Exception as e:
-            print(f"Error updating data: {e}")
+            logger.error(f"Error updating data: {e}")
             return "Error updating data", 500
 
-    universities = {entry['university'] for entry in data_cache}
+    data = load_data()
+    universities = {entry['university'] for entry in data}
     return render_template('update.html', universities=list(universities))
-
-def save_data():
-    """Save the cached data back to the CSV file."""
-    with lock:
-        try:
-            df = pd.DataFrame(data_cache)
-            df.to_csv(CSV_FILE, index=False)
-        except Exception as e:
-            print(f"Error saving data: {e}")
-
-# Load data once on startup
-load_data()
 
 if __name__ == '__main__':
     app.run(debug=os.getenv("DEBUG", "False") == "True")
