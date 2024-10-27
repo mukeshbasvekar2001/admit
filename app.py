@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-import csv
+import pandas as pd
 import os
+import time
 from threading import Lock
-from pathlib import Path
 from flask_compress import Compress
 
 app = Flask(__name__)
@@ -12,34 +12,31 @@ Compress(app)  # Enable compression for faster load times
 lock = Lock()
 
 # CSV file path, configurable via environment variable
-CSV_FILE = os.getenv("CSV_FILE", str(Path(__file__).resolve().parent / 'database.csv'))
+CSV_FILE = os.getenv("CSV_FILE", os.path.join(os.path.dirname(__file__), 'database.csv'))
 
 # Global variables to cache the data
 data_cache = []
 data_last_updated = None
 
-def load_data():
-    """Load the CSV file data into memory."""
-    global data_cache, data_last_updated
-    with lock:
-        try:
-            with open(CSV_FILE, mode='r') as file:
-                reader = csv.DictReader(file)
-                data_cache = list(reader)
-                data_last_updated = os.path.getmtime(CSV_FILE)
-        except Exception:
-            data_cache = []
+# Cache expiry time (in seconds)
+CACHE_EXPIRY_TIME = 60 * 5  # 5 minutes
 
-def save_data():
-    """Save the cached data back to the CSV file."""
+def load_data():
+    """Load the CSV file data into memory using Pandas, with caching."""
+    global data_cache, data_last_updated
+    # Check if data is still fresh
+    if data_last_updated and (time.time() - data_last_updated) < CACHE_EXPIRY_TIME:
+        return  # Data is still fresh
+
     with lock:
         try:
-            with open(CSV_FILE, mode='w', newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=data_cache[0].keys())
-                writer.writeheader()
-                writer.writerows(data_cache)
-        except Exception:
-            pass
+            # Load data with Pandas
+            df = pd.read_csv(CSV_FILE)
+            data_cache = df.to_dict(orient='records')
+            data_last_updated = time.time()  # Update last updated time
+        except Exception as e:
+            data_cache = []
+            print(f"Error loading data: {e}")
 
 def format_averages(data):
     """Format the averages to one decimal place."""
@@ -52,8 +49,7 @@ def format_averages(data):
 @app.route('/')
 def index():
     """Displays the courses and related data."""
-    if not data_cache:
-        load_data()
+    load_data()  # Ensure data is loaded
     if not data_cache:
         return "No data available", 404
 
@@ -161,11 +157,21 @@ def update():
 
             save_data()  # Save data after the update
             return redirect(url_for('index'))
-        except Exception:
+        except Exception as e:
+            print(f"Error updating data: {e}")
             return "Error updating data", 500
 
     universities = {entry['university'] for entry in data_cache}
     return render_template('update.html', universities=list(universities))
+
+def save_data():
+    """Save the cached data back to the CSV file."""
+    with lock:
+        try:
+            df = pd.DataFrame(data_cache)
+            df.to_csv(CSV_FILE, index=False)
+        except Exception as e:
+            print(f"Error saving data: {e}")
 
 # Load data once on startup
 load_data()
