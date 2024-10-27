@@ -1,6 +1,0 @@
-university_rank,university,course,gmat_average,gmat_count,gre_average,gre_count,experience_average,experience_count,gpa_average,gpa_count,toefl_average,toefl_count,ielts_average,ielts_count
-1,University A,Computer Science,773.3,3,0.0,0,7.3,3,4.0,3,0.0,0,0.0,0
-2,University B,Computer Science,0.0,0,0.0,0,0.0,0,0.0,0,0.0,0,0.0,0
-3,University B,Engineering Management,0.0,0,0.0,0,0.0,0,0.0,0,0.0,0,0.0,0
-4,University E,Product Management,750.0,2,0.0,0,6.0,2,3.0,2,0.0,0,0.0,0
-5,University E,Engineering Management,775.0,2,0.0,0,7.0,2,3.0,2,0.0,0,0.0,0
