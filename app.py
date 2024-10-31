@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-import json
+import csv
 import os
 from threading import Lock
 import logging
@@ -16,43 +16,46 @@ logger = logging.getLogger(__name__)
 # File lock to prevent race conditions
 lock = Lock()
 
-# JSON file path, configurable via environment variable
-JSON_FILE = os.getenv("JSON_FILE", str(Path(__file__).resolve().parent / 'database.json'))
-logger.info(f"Using JSON file at: {JSON_FILE}")
+# CSV file path, configurable via environment variable
+CSV_FILE = os.getenv("CSV_FILE", str(Path(__file__).resolve().parent / 'database.csv'))
+logger.info(f"Using CSV file at: {CSV_FILE}")
 
 # Global variables to cache the data
 data_cache = []
 data_last_updated = None
 
 def load_data():
-    """Load the JSON file data in a thread-safe manner only if cache is empty or outdated."""
+    """Load the CSV file data in a thread-safe manner only if cache is empty or outdated."""
     global data_cache, data_last_updated
     with lock:
-        if data_cache and data_last_updated == os.path.getmtime(JSON_FILE):
+        if data_cache and data_last_updated == os.path.getmtime(CSV_FILE):
             return data_cache
         try:
-            logger.info("Loading data from JSON")
-            with open(JSON_FILE, mode='r') as file:
-                data_cache = json.load(file)
-                data_last_updated = os.path.getmtime(JSON_FILE)
+            logger.info("Loading data from CSV")
+            with open(CSV_FILE, mode='r') as file:
+                reader = csv.DictReader(file)
+                data_cache = list(reader)
+                data_last_updated = os.path.getmtime(CSV_FILE)
                 return data_cache
         except Exception as e:
-            logger.error(f"Error loading JSON file: {e}")
+            logger.error(f"Error loading CSV file: {e}")
             return []
 
 def save_data(data):
-    """Save the data back to the JSON file in a thread-safe manner and update cache."""
+    """Save the data back to the CSV file in a thread-safe manner and update cache."""
     global data_cache
     with lock:
         try:
-            logger.info("Saving data to JSON")
-            with open(JSON_FILE, mode='w') as file:
-                json.dump(data, file, indent=4)
+            logger.info("Saving data to CSV")
+            with open(CSV_FILE, mode='w', newline='') as file:
+                writer = csv.DictWriter(file, fieldnames=data[0].keys())
+                writer.writeheader()
+                writer.writerows(data)
             # Update cache after saving data
             data_cache = data
-            data_last_updated = os.path.getmtime(JSON_FILE)
+            data_last_updated = os.path.getmtime(CSV_FILE)
         except Exception as e:
-            logger.error(f"Error saving JSON file: {e}")
+            logger.error(f"Error saving CSV file: {e}")
 
 def format_averages(data):
     """Format the averages to two decimal places."""

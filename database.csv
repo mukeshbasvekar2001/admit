@@ -1,0 +1,129 @@
+university_rank,university,course,gmat_average,gmat_count,gre_average,gre_count,experience_average,experience_count,gpa_average,gpa_count,toefl_average,toefl_count,ielts_average,ielts_count
+1,Massachusetts Institute of Technology (MIT),Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+2,Stanford University,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+3,Columbia University,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+4,Duke University,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+5,Dartmouth College,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+6,Northwestern University,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+7,Purdue University,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+8,Johns Hopkins University,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+9,University of Southern California (USC),Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+10,North Carolina State University (NCSU),Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+11,University of Massachusetts Amherst,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+12,"New York University, Tandon (NYU Tandon)",Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+13,Northeastern University,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+14,Cornell University,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+15,San Jose State University,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+16,"California State University, East Bay (CSU East Bay)",Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+17,University of Illinois Urbana-Champaign (UIUC),Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+18,University of Massachusetts Amherst,Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+19,New York University (NYU),Engineering Management,0,0,0,0,0,0,0,0,0,0,0,0
+1,Massachusetts Institute of Technology (MIT),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+2,Stanford University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+3,"University of California, Berkeley (UC Berkeley)",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+4,Carnegie Mellon University (CMU),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+5,California Institute of Technology (Caltech),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+6,Harvard University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+7,University of Florida,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+8,University of Southern California (USC),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+9,"University of California, Davis (UC Davis)",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+10,Clemson University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+11,Georgia Institute of Technology (Georgia Tech),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+12,"University of California, Irvine (UCI)",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+13,University of Pennsylvania,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+14,"University of Wisconsin, Madison",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+15,"University of California, San Diego (UCSD)",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+16,"Purdue University, West Lafayette",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+17,New York University (NYU),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+18,Virginia Tech,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+19,"University of Massachusetts, Amherst",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+20,North Carolina State University (NCSU),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+21,"University of Texas, Austin",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+22,"University of Michigan, Ann Arbor",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+23,Duke University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+24,University of Illinois Urbana-Champaign (UIUC),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+25,Santa Clara State University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+26,"University of Washington, Seattle",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+27,University of Connecticut,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+28,Arizona State University (ASU),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+29,"Rutgers University, New Brunswick",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+30,Columbia University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+31,"University at Buffalo, SUNY",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+32,San Jose State University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+33,"University of Minnesota, Twin Cities",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+34,"University of Texas, Dallas (UTD)",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+35,"Stony Brook University, SUNY",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+36,Cornell University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+37,Northeastern University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+38,Syracuse University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+39,"Texas A&M University, College Station",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+40,University of Colorado Boulder,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+41,Rochester Institute of Technology (RIT),Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+42,Indiana University Bloomington,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+43,Princeton University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+44,"University of Texas, Arlington",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+45,"University of Illinois, Chicago (UIC)",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+46,"University of California, Los Angeles (UCLA)",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+47,"University of California, San Diego (UCSD)",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+48,Boston University,Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+49,"University of Maryland, College Park",Computer Science,0,0,0,0,0,0,0,0,0,0,0,0
+1,"University of California, Berkeley (UC Berkeley)",Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+2,University of Illinois Urbana-Champaign (UIUC),Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+3,University of Southern California (USC),Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+4,Duke University,Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+5,Pennsylvania State University (Penn State),Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+6,Georgia Institute of Technology (Georgia Tech),Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+7,Carnegie Mellon University (CMU),Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+8,University of Connecticut,Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+9,Rutgers University,Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+10,"University of Minnesota, Twin Cities",Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+11,"University of California, Los Angeles (UCLA)",Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+12,North Carolina State University (NCSU),Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+13,Santa Clara University,Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+14,"University of Washington, Seattle",Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+15,Syracuse University,Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+16,"University of California, Irvine (UC Irvine)",Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+17,Northwestern University,Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+18,"University of Michigan, Ann Arbor",Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+19,University of Chicago,Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+20,"University of California, San Diego (UCSD)",Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+21,University of Texas at Austin (UT Austin),Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+22,University of Illinois Chicago (UIC),Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+23,University of Massachusetts Amherst,Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+24,Columbia University,Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+25,University of Southern California (USC),Business Analytics,0,0,0,0,0,0,0,0,0,0,0,0
+1,University of Illinois Urbana-Champaign (UIUC),Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+2,University of Texas at Austin (UT Austin),Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+3,"University at Buffalo, SUNY (SUNY Buffalo)",Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+4,University of Southern California (USC),Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+5,Northeastern University,Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+6,Pennsylvania State University (Penn State),Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+7,"University of California, Berkeley (UC Berkeley)",Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+8,"Texas A&M University, College Station",Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+9,University of Arizona,Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+10,Indiana University Bloomington,Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+11,New York University (NYU),Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+12,"University of Maryland, College Park",Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+13,Carnegie Mellon University (CMU),Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+14,University of North Carolina at Chapel Hill (UNC Chapel Hill),Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+15,"University of Washington, Seattle",Information Systems,0,0,0,0,0,0,0,0,0,0,0,0
+1,Harvard Business School,MBA,0,0,0,0,0,0,0,0,0,0,0,0
+2,Stanford Graduate School of Business,MBA,0,0,0,0,0,0,0,0,0,0,0,0
+3,University of Pennsylvania (Wharton),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+4,MIT Sloan School of Management,MBA,0,0,0,0,0,0,0,0,0,0,0,0
+5,Columbia Business School,MBA,0,0,0,0,0,0,0,0,0,0,0,0
+6,University of Chicago (Booth),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+7,Northwestern University (Kellogg),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+8,"University of California, Berkeley (Haas)",MBA,0,0,0,0,0,0,0,0,0,0,0,0
+9,"University of Michigan, Ann Arbor (Ross)",MBA,0,0,0,0,0,0,0,0,0,0,0,0
+10,Duke University (Fuqua),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+11,Yale School of Management,MBA,0,0,0,0,0,0,0,0,0,0,0,0
+12,University of Virginia (Darden),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+13,University of Texas at Austin (McCombs),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+14,University of Southern California (Marshall),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+15,University of Washington (Foster),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+16,University of Florida (Warrington),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+17,Indiana University Bloomington (Kelley),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+18,University of Notre Dame (Mendoza),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+19,University of Minnesota (Carlson),MBA,0,0,0,0,0,0,0,0,0,0,0,0
+20,Ohio State University (Fisher),MBA,0,0,0,0,0,0,0,0,0,0,0,0
