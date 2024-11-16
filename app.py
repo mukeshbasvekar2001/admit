@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, send_file
 import csv
 import os
 from threading import Lock
@@ -40,6 +40,17 @@ def load_data():
         except Exception as e:
             logger.error(f"Error loading CSV file: {e}")
             return []
+
+# Path to the CSV file
+CSV_FILE_PATH = os.path.join(os.path.dirname(__file__), 'database.csv')
+
+# Route to handle file download
+@app.route('/download')
+def download_file():
+    if os.path.exists(CSV_FILE_PATH):
+        return send_file(CSV_FILE_PATH, as_attachment=True)
+    else:
+        return "File not found", 404
 
 def save_data(data):
     """Save the data back to the CSV file in a thread-safe manner and update cache."""
